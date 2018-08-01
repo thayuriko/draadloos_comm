@@ -10,73 +10,74 @@ clear all; close all; clc;
 
 rand('state',0); randn('state',0); bar = waitbar(0,'Setting up...');
 
-EbN0_db = 0:20;
+EbN0_db = -20:20;
 nBits = 1e7;
 EbN0 = 10.^(EbN0_db/10);
 ber_awgn = zeros(1,length(EbN0));
-m_naka = 3;
+m_naka = 2;
 nRx = [1 2 4];  %vetor com a qtde de antenas
 m = rand(1,nBits)>0.5;
 x = 2*m-1;      %BPSK
-step = 64;
 
 for i=1:length(EbN0)    
-    waitbar(EbN0_db(i)/length(EbN0),bar,'Please wait');
+    waitbar(i/length(EbN0),bar,'Please wait');
     
     for j=1:length(nRx)
-        [err1, err2] = deal(0);
+        [err_naka_sc, err_naka_mrc, err_awgn] = deal(0);
         
-        for k=1:step:(nBits-rem(nBits,step))
-            frame = x(k:k+step-1);
-            
-            N0 = 1/EbN0(i);
-            n = sqrt(0.5*N0)*repmat((randn(nRx(j),1)+1i*randn(nRx(j),1)),1,step);
-            r = repmat(nak_m(m_naka,nRx(j),1),1,step);
+        N0 = 1/EbN0(i);
+        n = sqrt(0.5*N0)*(randn(nRx(j),nBits)+1i*randn(nRx(j),nBits));
+        r = nak_m(m_naka,nRx(j),nBits);
 
-            sd = kron(ones(nRx(j),1),frame);
-            y1 = sd.*r + n;
+        sd = kron(ones(nRx(j),1),x);
+        y0 = sd.*ones(nRx(j),nBits) + n;
+        y1 = sd.*r + n;
 
-            rPower = r.*conj(r);
-            [rMaxVal ind] = max(rPower,[],1);
-            rMaxValMat = kron(ones(nRx(j),1),rMaxVal);
+        rPower = r.*conj(r);
+        [rMaxVal ind] = max(rPower,[],1);
+        rMaxValMat = kron(ones(nRx(j),1),rMaxVal);
 
-            ySel = y1(rPower==rMaxValMat);
-            rSel = r(rPower==rMaxValMat);
-
-            if j>1
-                ySel = ySel.';
-                rSel = rSel.';
-            end
-
-            yHat = sum(conj(r).*y1,1)./sum(r.*conj(r),1); 
-            
-            err1 = err1 + sum((ySel./rSel>0) ~= m(k:k+step-1));
-            err2 = err2 + sum((yHat>0) ~= m(k:k+step-1));
+        ySel = y1(rPower==rMaxValMat);
+        rSel = r(rPower==rMaxValMat);
+        
+        if j>1
+            ySel = ySel.';
+            rSel = rSel.';
         end
+
+        yHat = sum(conj(r).*y1,1)./sum(r.*conj(r),1); 
         
-        ber_naka_sc(j,i) = err1/(nBits-rem(nBits,step));
-        ber_naka(j,i) = err2/(nBits-rem(nBits,step));
+        err_naka_sc = err_naka_sc + sum((ySel./rSel>0) ~= m);
+        err_naka_mrc = err_naka_mrc + sum((yHat>0) ~= m);
+        err_awgn = err_awgn + sum((y0(1,:)>0) ~= m);
+        
+        ber_naka_sc(j,i) = err_naka_sc/nBits;
+        ber_naka(j,i) = err_naka_mrc/nBits;
+        ber_awgn(j,i) = err_awgn/nBits;
     end
 end
 close(bar);
 
-plot_mrc = figure('NumberTitle', 'off','units','normalized','outerposition',[0 0 1 1],'Name', 'Maximum Ratio Combining');
+close all;
+plot_mrc = figure('NumberTitle', 'off','units','normalized','outerposition',[0 0 0.5 1],'Name', 'MRC');
 semilogy(EbN0_db,ber_naka(1,:),'-v','Linewidth', 2); hold on;
 semilogy(EbN0_db,ber_naka(2,:),'-v','Linewidth', 2);
-semilogy(EbN0_db,ber_naka(3,:),'-v','Linewidth', 2); hold off;
-legend('nRx = 1', 'nRx = 2', 'nRx = 4');
-title('Canal AWGN com desvanecimento Nakagami-m (m=3) utilizando MRC');
+semilogy(EbN0_db,ber_naka(3,:),'-v','Linewidth', 2);
+semilogy(EbN0_db,ber_awgn(1,:),'-o','Linewidth', 2); hold off;
+legend('nRx = 1', 'nRx = 2', 'nRx = 4', 'AWGN');
+title('Canal Nakagami-m (m = 2) utilizando MRC');
 ylabel('BER'); xlabel('EbN0 (dB)');
-grid on; axis([1 length(EbN0)-1 1e3/nBits 1]);
+grid on; axis([EbN0_db(1) (length(EbN0)-1)/2 1e3/nBits 1]);
 
-plot_sc = figure('NumberTitle', 'off','units','normalized','outerposition',[0 0 1 1],'Name', 'Selection Combining');
+plot_sc = figure('NumberTitle', 'off','units','normalized','outerposition',[0 0 0.5 1],'Name', 'SC');
 semilogy(EbN0_db,ber_naka_sc(1,:),'-^','Linewidth', 2); hold on;
 semilogy(EbN0_db,ber_naka_sc(2,:),'-^','Linewidth', 2);
-semilogy(EbN0_db,ber_naka_sc(3,:),'-^','Linewidth', 2); hold off;
-legend('nRx = 1', 'nRx = 2', 'nRx = 4');
-title('Canal AWGN com desvanecimento Nakagami-m (m=3) utilizando SC');
+semilogy(EbN0_db,ber_naka_sc(3,:),'-^','Linewidth', 2);
+semilogy(EbN0_db,ber_awgn(1,:),'-o','Linewidth', 2); hold off;
+legend('nRx = 1', 'nRx = 2', 'nRx = 4', 'AWGN');
+title('Canal Nakagami-m (m = 2) utilizando SC');
 ylabel('BER'); xlabel('EbN0 (dB)');
-grid on; axis([1 length(EbN0)-1 1e3/nBits 1]);
+grid on; axis([EbN0_db(1) (length(EbN0)-1)/2 1e3/nBits 1]);
 
 print(plot_mrc,'t7_q2_mrc','-dpng')
 print(plot_sc,'t7_q2_sc','-dpng')
@@ -140,30 +141,40 @@ N0 = 10^(N0_db/10);
 Pr_db = Pt_db + (Gt_db + Gr_db) - Pl_db - margem_db;
 Pr = 10^(Pr_db/10);
 
-for i=1:length(nRx)+1
-    if i == 1
-        EbN01(i) = ((qfuncinv(BER*log2(M)/2)/sin(pi/M))^2)/(2*log2(M));
-    else
-        [a, EbN0_db1] = min(abs(ber_rayl(i-1,:)-BER)); %SNR correspondente ao valor mais próximo da BER requerida
-        EbN01(i) = 10^(EbN0_db1/10);
-    end
+N = N0*B*(1+alpha);
+N_db = 10*log10(N); %a SNR permitida pelo sistema é de 13dB
+EbN0_db_max = Pr_db - N_db;
 
-    Rb1 = Pr/(N0*EbN01(i));
-    Rs = Rb1/log2(M);
-    Bcl(i) = Rs*(1+alpha);
+for i=1:length(M)
+    for j=1:length(nRx)+1
+        if j == 1
+            EbN01(j) = ((qfuncinv(BER*log2(M(i))/2)/sin(pi/M(i)))^2)/(2*log2(M(i)));
+        else
+            [a, EbN0_db1] = min(abs(ber_rayl(i-1,:)-BER)); %SNR correspondente ao valor mais próximo da BER requerida
+            EbN01(j) = 10^(EbN0_db1/10);
+        end
+        
+        EbN0_db = 10*log10(EbN01(j));
+        
+        if EbN0_db <= EbN0_db_max
+            Rb1 = Pr/(N0*EbN01(j));
+            Rs = Rb1/log2(M(i));
+            Bcl(j) = Rs*(1+alpha);
 
-    Rs = B/(1+alpha);
-    Rb2 = Rs*log2(M);
+            Rs = B/(1+alpha);
+            Rb2 = Rs*log2(M(i));
 
-    if B >= Bcl(i)
-        if Bcl(i) > Bmax
-            Bmax_id = i;
-            Bmax = Bcl(i);
+            if B >= Bcl(i)
+                if Bcl(i) > Bmax
+                    Bmax_id = i;
+                    Bmax = Bcl(i);
+                end
+            end
+
+            Rb_kbps(i,1) = Rb1/1e3;
+            Rb_kbps(i,2) = Rb2/1e3;
         end
     end
-    
-    Rb_kbps(i,1) = Rb1/1e3;
-    Rb_kbps(i,2) = Rb2/1e3;
 end
 
 10*log10(EbN01)
