@@ -4,14 +4,14 @@
 % Rayleigh fading channel with selection diversity
 % http://www.dsplog.com/db-install/wp-content/uploads/2008/09/script_selection_diversity_effective_snr.m
 % --------------------------------------------------
-% https://github.com/thayuriko/draadloos_ntw
+% https://github.com/thayuriko/draadloos_comm
 
 clear all; close all; clc;
 
 rand('state',0); randn('state',0); bar = waitbar(0,'Setting up...');
 
 EbN0_db = -20:20;
-nBits = 1e7;
+nBits = 1e4;
 EbN0 = 10.^(EbN0_db/10);
 ber_awgn = zeros(1,length(EbN0));
 m_naka = 2;
@@ -58,7 +58,6 @@ for i=1:length(EbN0)
 end
 close(bar);
 
-close all;
 plot_mrc = figure('NumberTitle', 'off','units','normalized','outerposition',[0 0 0.5 1],'Name', 'MRC');
 semilogy(EbN0_db,ber_naka(1,:),'-v','Linewidth', 2); hold on;
 semilogy(EbN0_db,ber_naka(2,:),'-v','Linewidth', 2);
@@ -79,8 +78,8 @@ title('Canal Nakagami-m (m = 2) utilizando SC');
 ylabel('BER'); xlabel('EbN0 (dB)');
 grid on; axis([EbN0_db(1) (length(EbN0)-1)/2 1e3/nBits 1]);
 
-print(plot_mrc,'t7_q2_mrc','-dpng')
-print(plot_sc,'t7_q2_sc','-dpng')
+%print(plot_mrc,'t7_q2_mrc','-dpng')
+%print(plot_sc,'t7_q2_sc','-dpng')
 
 %% Q3
 % --------------------------------------------------
@@ -97,6 +96,7 @@ nBits = 1e7;
 EbN0 = 10.^(EbN0_db/10);
 [ber_awgn, ber_rayl] = deal(zeros(1,length(EbN0)));
 nRx = [1 2 4];  %vetor com a qtde de antenas
+M = [2 4 8 16];
 
 m = rand(1,nBits)>0.5;
 x = 2*m-1;      %BPSK
@@ -133,6 +133,9 @@ legend('Rayleigh + MRC (nRx = 1)', 'Rayleigh + MRC (nRx = 2)', 'Rayleigh + MRC (
 title('BER da BPSK em um canal Rayleigh utilizando a técnica MRC');
 close(bar);
 
+%%
+%clear all; close all; clc;
+
 Pt = 1e-3; Gt_db = 4; Gr_db = 8; Pl_db = 100; margem_db = 5; 
 N0_db = -204; BER = 0.1e-2; B = 5e6; alpha = 0.25; Bmax = 0; M = 2;
 Pt_db = 10*log10(Pt);
@@ -142,40 +145,43 @@ Pr_db = Pt_db + (Gt_db + Gr_db) - Pl_db - margem_db;
 Pr = 10^(Pr_db/10);
 
 N = N0*B*(1+alpha);
-N_db = 10*log10(N); %a SNR permitida pelo sistema é de 13dB
-EbN0_db_max = Pr_db - N_db;
+N_db = 10*log10(N);
+EbN0_db_max = Pr_db - N_db
 
-for i=1:length(M)
-    for j=1:length(nRx)+1
-        if j == 1
-            EbN01(j) = ((qfuncinv(BER*log2(M(i))/2)/sin(pi/M(i)))^2)/(2*log2(M(i)));
-        else
-            [a, EbN0_db1] = min(abs(ber_rayl(i-1,:)-BER)); %SNR correspondente ao valor mais próximo da BER requerida
-            EbN01(j) = 10^(EbN0_db1/10);
-        end
-        
-        EbN0_db = 10*log10(EbN01(j));
-        
-        if EbN0_db <= EbN0_db_max
-            Rb1 = Pr/(N0*EbN01(j));
-            Rs = Rb1/log2(M(i));
-            Bcl(j) = Rs*(1+alpha);
+%bertool;
+%{
+for i=1:length(nRx)
+    if i == 1
+        EbN01(i) = ((qfuncinv(BER*log2(M)/2)/sin(pi/M))^2)/(2*log2(M));
+    else
+        [a, EbN0_db1] = min(abs(ber_rayl(i,:)-BER)); %SNR correspondente ao valor mais próximo da BER requerida
+        EbN01(i) = 10^(EbN0_db1/10);
+    end
 
-            Rs = B/(1+alpha);
-            Rb2 = Rs*log2(M(i));
+    EbN0_db = 10*log10(EbN01(i));
 
-            if B >= Bcl(i)
-                if Bcl(i) > Bmax
-                    Bmax_id = i;
-                    Bmax = Bcl(i);
-                end
+    if EbN0_db <= EbN0_db_max
+        Rb1 = Pr/(N0*EbN01(i));
+        Rs = Rb1/log2(M);
+        Bcl = Rs*(1+alpha);
+
+        Rs = B/(1+alpha);
+        Rb2 = Rs*log2(M);
+
+        if B >= Bcl
+            if Bcl > Bmax
+                Bmax_id = i;
+                Bmax = Bcl;
             end
-
-            Rb_kbps(i,1) = Rb1/1e3;
-            Rb_kbps(i,2) = Rb2/1e3;
         end
+
+        Rb_kbps(i,1) = Rb1/1e3;
+        Rb_kbps(i,2) = Rb2/1e3;
     end
 end
-
-10*log10(EbN01)
-Rb_kbps(:,1)'/10
+%}
+%{
+Para os requisitos especificados, a maior SNR permitida para se satisfazer o sistema é de 13dB. Observa-se, pela figura da BERTOOL, que apenas para M = 2 e M = 8 que se torna possível atingir uma BER de 0.1% e SNR < 13dB.
+Assim, para a modulação BPSK, percebe-se que apenas para as situações de 4 e 2 antenas receptoras e técnica de combinação MRC satisfaria a condição imposta no problema. Assume-se, portanto, que para a modulação 8-PSK apenas a situação com 4 antenas seria satisfatória.
+Por fim, nota-se que para a modulação BPSK e 4 antenas receptoras, a BER poderia ser reduzida em mais de 100 vezes ao utilizar a máxima SNR permitida pelo sistema. 
+%}

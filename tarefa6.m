@@ -1,5 +1,5 @@
 %% Q2 - BER e FER do BPSK com códigos com desvanecimento Rayleigh (canais rápido e lento)
-%https://github.com/thayuriko/draadloos_ntw
+%https://github.com/thayuriko/draadloos_comm
 
 %---------------CANAL RÁPIDO---------------%
 clear all; close all; clc;
@@ -140,7 +140,7 @@ print(plot_fast,'t6_q2_fast','-dpng')
 
 close(bar);
 %% Q4 - Simular a FER do BPSK com códigos considerando 0, 1 e 2 retransmissões (HARQ Tipo-I Simples)
-%https://github.com/thayuriko/draadloos_ntw
+%https://github.com/thayuriko/draadloos_comm
 clear all; close all; clc;
 
 rand('state',0); randn('state',0);
