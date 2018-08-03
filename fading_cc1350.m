@@ -15,7 +15,7 @@ pathloss(5,:) = dados40_m(:,3);
 fading(1,:) = dados20_m(:,3);
 fading(2,:) = dados20_m(:,3);
 
-syms n f(x) x j(n);
+syms x f(x);
 d = [1 10 20 30 40];
 Pr_dbm = [];
 
@@ -23,19 +23,19 @@ clear dados1_m dados10_m dados20_m dados30_m dados40_m dados;
 
 for i=1:size(pathloss,1)
     Pr_dbm(i) = mean(pathloss(i,:));
-    Ei(i) = Pr_dbm(1) - 10*n*log10(d(i)/d(1));
+    Ei(i) = Pr_dbm(1) - 10*x*log10(d(i)/d(1));
 end
 
-j(n) = sum(Pr_dbm - Ei)^2;
-df = diff(j,n);
-coef = double(solve(df,n));
+f(x) = sum(Pr_dbm - Ei)^2;
+df = diff(f,x);
+n = double(solve(df,x));
 
-Pr_sim = Pr_dbm(1) - 10*coef*log10(d./d(1));
+Pr_sim = Pr_dbm(1) - 10*n*log10(d./d(1));
 
 figure;
 plot(d,Pr_dbm, '-o', 'LineWidth', 2); hold on;
 plot(d,Pr_sim, '-s', 'LineWidth', 2); hold off;
 legend('Medido', 'Simulado');
-title(['Perda de Percurso: Modelo Log-distância (n = ' num2str(coef) ')']);
+title(['Perda de Percurso: Modelo Log-distância (n = ' num2str(n) ')']);
 ylabel('RSSI (dB)'); xlabel('distância (m)');
 grid on;
