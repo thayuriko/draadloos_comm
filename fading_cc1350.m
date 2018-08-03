@@ -30,7 +30,7 @@ j(n) = sum(Pr_dbm - Ei)^2;
 df = diff(j,n);
 coef = double(solve(df,n));
 
-Pr_sim = Pr_dbm(1) - 10*2.586*log10(d./d(1));
+Pr_sim = Pr_dbm(1) - 10*coef*log10(d./d(1));
 
 figure;
 plot(d,Pr_dbm, '-o', 'LineWidth', 2); hold on;
