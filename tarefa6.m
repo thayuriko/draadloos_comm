@@ -135,8 +135,8 @@ t1 = title('Performance BPSK com desvanecimento Rayleigh em Canal Lento','FontSi
 a.Visible = 'off'; % set(a,'Visible','off');
 t1.Visible = 'on'; % set(t1,'Visible','on');
 
-print(plot_slow,'t6_q2_slow','-dpng')
-print(plot_fast,'t6_q2_fast','-dpng')
+print(plot_slow,'img/t6_q2_slow','-dpng')
+print(plot_fast,'img/t6_q2_fast','-dpng')
 
 close(bar);
 %% Q4 - Simular a FER do BPSK com códigos considerando 0, 1 e 2 retransmissões (HARQ Tipo-I Simples)
@@ -214,7 +214,7 @@ title('Desempenho BPSK com codificação Hamming (15,11) e Retransmissão HARQ Tipo
 ylabel('FER'); xlabel('EbN0 (dB)');
 grid on; axis([1 length(EbN0)-1 1e3/nBits 1]);
 
-print(plot_slow,'t6_q4','-dpng')
+print(plot_slow,'img/t6_q4','-dpng')
 
 close(bar);
 

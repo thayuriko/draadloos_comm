@@ -8,6 +8,7 @@
 
 clear all; close all; clc;
 
+addpath('lib');
 rand('state',0); randn('state',0); bar = waitbar(0,'Setting up...');
 
 EbN0_db = -20:20;
@@ -78,8 +79,8 @@ title('Canal Nakagami-m (m = 2) utilizando SC');
 ylabel('BER'); xlabel('EbN0 (dB)');
 grid on; axis([EbN0_db(1) (length(EbN0)-1)/2 1e3/nBits 1]);
 
-%print(plot_mrc,'t7_q2_mrc','-dpng')
-%print(plot_sc,'t7_q2_sc','-dpng')
+print(plot_mrc,'img/t7_q2_mrc','-dpng')
+print(plot_sc,'img/t7_q2_sc','-dpng')
 
 %% Q3
 % --------------------------------------------------
@@ -122,7 +123,7 @@ for i=1:length(EbN0)
     ber_awgn(i) = err0/nBits;
 end
 
-figure;
+plot_mrc = figure('units','normalized','outerposition',[0 0 0.5 1]);
 semilogy(EbN0_db, ber_rayl(1,:), '-o', 'Linewidth', 2); hold on;
 semilogy(ber_rayl(2,:), '-d', 'Linewidth', 2);
 semilogy(ber_rayl(3,:), '-s', 'Linewidth', 2);
@@ -132,7 +133,7 @@ ylabel('BER'); xlabel('EbN0 (dB)');
 legend('Rayleigh + MRC (nRx = 1)', 'Rayleigh + MRC (nRx = 2)', 'Rayleigh + MRC (nRx = 4)', 'AWGN');
 title('BER da BPSK em um canal Rayleigh utilizando a técnica MRC');
 close(bar);
-
+print(plot_mrc,'img/t7_q3','-dpng')
 %%
 %clear all; close all; clc;
 

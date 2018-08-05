@@ -34,13 +34,11 @@ semilogy(d, P_rayl_exato,'b-','LineWidth',2);
 semilogy(d, P_rayl_aprox,'b--','LineWidth',2);
 
 grid on;
-%axis([0 60 1e-5 1]);
 title('P_{out} X d (Rayleigh e Nakagami)');
 legend('Nakagami m = 2 exato','Nakagami m = 2 aprox','Rayleigh exato','Rayleigh aprox');
 ylabel('P_{out}');
 xlabel('Distância (m)');
 %% Q3. Figura 4.2 Goldsmith
-%clear all; close all; clc;
 
 SNR_avg = 10^(20/10);
 P_rayl = 1e-4:1e-3:1;

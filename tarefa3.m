@@ -12,7 +12,6 @@ legendCell = cell(length(K), 2);
 for i=1:length(K)
     z = 2.*h.*sqrt(K(i)*(K(i)+1)/pr);
     phRice =  2.*h*(K(i)+1).*exp(-K(i)-(K(i)+1).*h.^2/pr).*besseli(0,z)/pr;
-    
     phNaka = (2*m(i)^m(i).*h.^(2*m(i)-1)).*exp(-m(i).*h.^2/pr)/gamma(m(i))*pr.^m(i);
     
     figure(1)

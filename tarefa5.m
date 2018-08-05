@@ -100,8 +100,7 @@ transmitir pacotes em um canal com desvanecimento Rayleigh.
 %% Q.4
 clear all; close all; clc;
 
-rand('state',0);
-randn('state',0);
+addpath('lib'); rand('state',0); randn('state',0);
 
 EbN0_db = 0:40;  % vetor de relação sinal-ruído (SNR) em dB
 nBits = 10^7;    % quantidade de bits transmitidos
